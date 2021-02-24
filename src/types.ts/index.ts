@@ -1,9 +1,10 @@
-import { Request } from "zeromq";
+// import { Request } from "zeromq";
 
-export interface WorkerBee {
+export interface NNode {
   id: number;
   name: string;
   socket: string;
   requestor: any | void;
-  ping: Promise<void> | number;
+  receiver: any | void;
+  pong: Promise<void> | number;
 }
