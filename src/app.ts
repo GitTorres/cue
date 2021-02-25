@@ -44,24 +44,16 @@ import readline from "readline";
 // });
 
 (async () => {
-  const cortana = new Hub(sample_nodes);
-
-  cortana.connect();
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  rl.question(`P to ping/Q to quit: `, (n) => {
-    if (n === "P") cortana.ping();
-    if (n === "Q") terminate();
-    rl.close();
-  });
-
   function terminate(): void {
     //close all sockets - do later
     console.log("terminating network connections and shutting down Hub");
+    cortana.disconnect();
     process.exit(0);
   }
+
+  const cortana = new Hub(sample_nodes);
+  cortana.connect();
+  console.log(await cortana.status());
+
+  setInterval(() => {}, 1 << 30);
 })();

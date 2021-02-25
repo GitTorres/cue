@@ -2,7 +2,7 @@ import { NNode } from "../types.ts";
 
 export class Hub {
   _network_id: number;
-  _nodes: NNode[] | NNode;
+  _nodes: NNode[];
   _status: object;
   static _latest_id: number;
 
@@ -12,46 +12,35 @@ export class Hub {
     this._status = { active: false, connections: 0 };
   }
 
-  async ping(): Promise<void> {
-    //confirm which sockets are available
-    if ("forEach" in this._nodes) {
-      this._nodes.forEach(async (node) => {
-        if (node.requestor !== undefined) {
-          console.log(`Pinging node ${node.name}`);
-          await node.requestor.send(JSON.stringify({ id: node.id, request: "ping" }));
-          for await (const msg of node.requestor) {
-            console.log(JSON.stringify(msg));
-          }
-        } else {
-          console.log(`no connection to node ${node.name}`);
-        }
-      });
-    } else {
-      if (this._nodes.requestor !== undefined) {
-        await this._nodes.requestor.send(JSON.stringify({ id: this._nodes.id, request: "ping" }));
-        const msg = await this._nodes.requestor.receive();
-        console.log(JSON.stringify(msg));
+  async ping(): Promise<Buffer[][]> {
+    const req: Promise<void>[] = [];
+    this._nodes.forEach(async (node) => {
+      if (node.requestor) {
+        req.push(node.requestor.send(JSON.stringify({ id: node.id, request: "ping" })));
+      } else {
+        console.log(`no request mechanism specified for node ${node.name}`);
       }
-    }
+    });
+    const req_resolve: void[] = await Promise.all(req);
+    const rep: Buffer[][] = await Promise.all(this._nodes.map((node) => node.requestor.receive()));
+    return rep;
   }
 
   connect() {
-    if ("forEach" in this._nodes) {
-      this._nodes.forEach((node) => {
-        node.requestor.bind(node.socket);
-        console.log(`connected to node ${node.name}`);
-      });
-    } else {
-      this._nodes.requestor.bind(this._nodes.socket);
-      console.log(`connected to node ${this._nodes.name}`);
-    }
+    this._nodes.forEach((node) => {
+      node.requestor.connect(node.socket);
+    });
+    console.log(`connected to all nodes`);
   }
 
   disconnect() {
-    return 0;
+    this._nodes.forEach((node) => {
+      node.requestor.disconnect(node.socket);
+    });
+    console.log(`disconnected from all nodes`);
   }
 
-  request() {
+  async request() {
     return 0;
   }
 
@@ -62,11 +51,11 @@ export class Hub {
     return this._latest_id;
   }
 
-  // get status() {
-  //   const active_connections = this.ping();
-  //   return {
-  //     active: active_connections > 0 ? true : false,
-  //     connections: active_connections,
-  //   };
-  // }
+  async status() {
+    const pong_replies = await this.ping();
+    return {
+      active: pong_replies.length > 0 ? true : false,
+      connections: pong_replies.map((b) => b.toString()),
+    };
+  }
 }
