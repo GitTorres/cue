@@ -1,5 +1,7 @@
-import { sample_nodes } from "./utils";
-import { NNode } from "./types.ts";
+import { sample_nodes } from "../utils";
+import { NNode } from "../types.ts";
+
+//Needs to be updated to use the new Node class!!
 
 async function start(nodes: NNode): Promise<void> {
   await nodes.receiver.bind(nodes.socket);
