@@ -3,7 +3,6 @@ import { sample_nodes } from "./utils";
 
 (async () => {
   function terminate(): void {
-    //close all sockets - do later
     console.log("terminating network connections and shutting down Hub");
     cortana.disconnect();
     process.exit(0);

@@ -1,6 +1,6 @@
 import { NNode } from "../types.ts";
 import { Request, Reply } from "zeromq";
-export { Hub } from "./hub";
+export { Hub } from "./classes";
 
 export const sample_nodes: NNode[] = [
   {
